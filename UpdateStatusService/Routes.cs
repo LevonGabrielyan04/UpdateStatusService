@@ -43,6 +43,10 @@ namespace UpdateStatusService
                         _context.Update(transaction);
                         _context.SaveChanges();
                     }
+                    else
+                    {
+                        return new HttpResponseMessage(HttpStatusCode.BadRequest);
+                    }
                 }
                 return await UpdateStatuses();
             }
