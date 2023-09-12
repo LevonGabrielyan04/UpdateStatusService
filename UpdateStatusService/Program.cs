@@ -24,10 +24,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.MapGet("/updatestatuses", Routes.UpdateStatuses)
-.WithName("UpdateStatuses")
-.WithOpenApi();
-app.MapGet("/updatestatusesimidently", Routes.UpdateStatusImidiantly)
-.WithName("UpdateStatusesImidently")
-.WithOpenApi();
+app.MapGet("/updatestatuses", Routes.UpdateStatuses).WithName("UpdateStatuses").WithOpenApi();
+app.MapGet("/updatestatusesimidently", Routes.UpdateStatusImidiantly).WithName("UpdateStatusesImidently").WithOpenApi();
 app.Run();
+Routes.doTheWork();
