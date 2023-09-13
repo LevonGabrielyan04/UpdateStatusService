@@ -11,18 +11,22 @@ namespace UpdateStatusService
         static AppDbContext _context = new AppDbContext();
         public static int TTL;
         static readonly int[] ProviderStatusCodes = new int[] { 0, 100, 200 };
-        public static async Task<HttpResponseMessage> doTheWork()
+        public static async Task<HttpResponseMessage> doTheWork(int account,int amount,int serviceId)
         {
             try
             {
-                int account = 3749642;
-                int amount = 500;
-                int serviceId = 123;
-                int agentTransactionId;
 
                 using (HttpClient client = new HttpClient())
                 {
-                    HttpResponseMessage response = await client.GetAsync($"https://localhost:7207/Partners/Check?serviceId={serviceId}&amount={amount}&account={account}");
+                    var values = new Dictionary<string, string>
+                    {
+                        { "serviceId", serviceId.ToString() },
+                        { "amount", amount.ToString() },
+                        { "account", account.ToString() }
+                    };
+                    var content = new FormUrlEncodedContent(values);
+
+                    HttpResponseMessage response = await client.PostAsync($"https://localhost:7207/Partners/Check",content);
                     if (response.Content.ReadFromJsonAsync<CheckModel>().Result.PaymentAcceptable)
                     {
                         Transaction transaction = new Transaction();
@@ -37,8 +41,8 @@ namespace UpdateStatusService
                         transaction.TryCount = 0;
                         _context.Transactions.Add(transaction);
                         _context.SaveChanges();
-                        agentTransactionId = transaction.Id;
-                        response = await client.GetAsync($"https://localhost:7207/Partners/Pay?serviceId={serviceId}&amount={amount}&account={account}&agentTransactionId={agentTransactionId}");
+                        values.Add("agentTransactionId",transaction.Id.ToString());
+                        response = await client.PostAsync($"https://localhost:7207/Partners/Pay",content);
                         transaction.ProviderTransactionId = response.Content.ReadFromJsonAsync<PayModel>().Result.TransactionId;
                         _context.Update(transaction);
                         _context.SaveChanges();
@@ -69,8 +73,12 @@ namespace UpdateStatusService
                 {
                     foreach (var item in transactions)
                     {
-
-                        HttpResponseMessage response = await client.GetAsync($"https://localhost:7207/Partners/GetStatus?agentId={item.Id}");
+                        var values = new Dictionary<string, string>
+                        {
+                            { "agentId", item.Id.ToString() },
+                        };
+                        var content = new FormUrlEncodedContent(values);
+                        HttpResponseMessage response = await client.PostAsync($"https://localhost:7207/Partners/GetStatus",content);
                         if (response.IsSuccessStatusCode)
                         {
                             byte providerStatus = (byte)response.Content.ReadFromJsonAsync<GetStatusModel>().Result.Status;

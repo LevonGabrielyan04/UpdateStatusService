@@ -27,4 +27,4 @@ app.UseHttpsRedirection();
 app.MapGet("/updatestatuses", Routes.UpdateStatuses).WithName("UpdateStatuses").WithOpenApi();
 app.MapGet("/updatestatusesimidently", Routes.UpdateStatusImidiantly).WithName("UpdateStatusesImidently").WithOpenApi();
 app.Run();
-Routes.doTheWork();
+Routes.doTheWork(builder.Configuration.GetValue<int>("Account"),builder.Configuration.GetValue<int>("Amount"),builder.Configuration.GetValue<int>("ServiceId"));
